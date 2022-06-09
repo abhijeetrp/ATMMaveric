@@ -5,6 +5,7 @@ import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
+import java.sql.*;
 
 public class OptionMenu {
 	Scanner menuInput = new Scanner(System.in);
@@ -21,23 +22,43 @@ public class OptionMenu {
 				customerNumber = menuInput.nextInt();
 				System.out.print("\nEnter your PIN number: ");
 				pinNumber = menuInput.nextInt();
-				Iterator it = data.entrySet().iterator();
-				while (it.hasNext()) {
-					Map.Entry pair = (Map.Entry) it.next();
-					Account acc = (Account) pair.getValue();
-					if (data.containsKey(customerNumber) && pinNumber == acc.getPinNumber()) {
-						getAccountType(acc);
-						end = true;
-						break;
-					}
+				//Iterator it = data.entrySet().iterator();
+
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection con = DriverManager.getConnection(
+						"jdbc:mysql://localhost:3306/atm", "root", "maveric2022");
+
+				Statement stmt = con.createStatement();
+				String query1 = "SELECT * FROM customer_login WHERE cust_id=" +customerNumber+ " AND password="+pinNumber;
+				ResultSet rs = stmt.executeQuery(query1);
+				
+				 //System.out.println(rs.next());
+				if (rs.next()) {
+					end = true;
+					break;
 				}
+			
+
+
+
+				// while (it.hasNext()) {
+				// 	Map.Entry pair = (Map.Entry) it.next();
+				// 	Account acc = (Account) pair.getValue();
+				// 	if (data.containsKey(customerNumber) && pinNumber == acc.getPinNumber()) {
+				// 		// getAccountType(acc);
+				// 		// end = true;
+				// 		// break;
+				// 	}
+				 //}
+				
 				if (!end) {
 					System.out.println("\nWrong Customer Number or Pin Number");
 				}
-			} catch (InputMismatchException e) {
+			} catch (Exception e) {
 				System.out.println("\nInvalid Character(s). Only Numbers.");
 			}
 		}
+
 	}
 
 	public void getAccountType(Account acc) {
@@ -53,17 +74,17 @@ public class OptionMenu {
 				int selection = menuInput.nextInt();
 
 				switch (selection) {
-				case 1:
-					getChecking(acc);
-					break;
-				case 2:
-					getSaving(acc);
-					break;
-				case 3:
-					end = true;
-					break;
-				default:
-					System.out.println("\nInvalid Choice.");
+					case 1:
+						getChecking(acc);
+						break;
+					case 2:
+						getSaving(acc);
+						break;
+					case 3:
+						end = true;
+						break;
+					default:
+						System.out.println("\nInvalid Choice.");
 				}
 			} catch (InputMismatchException e) {
 				System.out.println("\nInvalid Choice.");
@@ -87,24 +108,25 @@ public class OptionMenu {
 				int selection = menuInput.nextInt();
 
 				switch (selection) {
-				case 1:
-					System.out.println("\nCheckings Account Balance: " + moneyFormat.format(acc.getCheckingBalance()));
-					break;
-				case 2:
-					acc.getCheckingWithdrawInput();
-					break;
-				case 3:
-					acc.getCheckingDepositInput();
-					break;
+					case 1:
+						System.out.println(
+								"\nCheckings Account Balance: " + moneyFormat.format(acc.getCheckingBalance()));
+						break;
+					case 2:
+						acc.getCheckingWithdrawInput();
+						break;
+					case 3:
+						acc.getCheckingDepositInput();
+						break;
 
-				case 4:
-					acc.getTransferInput("Checkings");
-					break;
-				case 5:
-					end = true;
-					break;
-				default:
-					System.out.println("\nInvalid Choice.");
+					case 4:
+						acc.getTransferInput("Checkings");
+						break;
+					case 5:
+						end = true;
+						break;
+					default:
+						System.out.println("\nInvalid Choice.");
 				}
 			} catch (InputMismatchException e) {
 				System.out.println("\nInvalid Choice.");
@@ -126,23 +148,23 @@ public class OptionMenu {
 				System.out.print("Choice: ");
 				int selection = menuInput.nextInt();
 				switch (selection) {
-				case 1:
-					System.out.println("\nSavings Account Balance: " + moneyFormat.format(acc.getSavingBalance()));
-					break;
-				case 2:
-					acc.getsavingWithdrawInput();
-					break;
-				case 3:
-					acc.getSavingDepositInput();
-					break;
-				case 4:
-					acc.getTransferInput("Savings");
-					break;
-				case 5:
-					end = true;
-					break;
-				default:
-					System.out.println("\nInvalid Choice.");
+					case 1:
+						System.out.println("\nSavings Account Balance: " + moneyFormat.format(acc.getSavingBalance()));
+						break;
+					case 2:
+						acc.getsavingWithdrawInput();
+						break;
+					case 3:
+						acc.getSavingDepositInput();
+						break;
+					case 4:
+						acc.getTransferInput("Savings");
+						break;
+					case 5:
+						end = true;
+						break;
+					default:
+						System.out.println("\nInvalid Choice.");
 				}
 			} catch (InputMismatchException e) {
 				System.out.println("\nInvalid Choice.");
@@ -154,28 +176,57 @@ public class OptionMenu {
 	public void createAccount() throws IOException {
 		int cst_no = 0;
 		boolean end = false;
+
 		while (!end) {
+
 			try {
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection con = DriverManager.getConnection(
+						"jdbc:mysql://localhost:3306/atm", "root", "maveric2022");
+
 				System.out.println("\nEnter your customer number ");
 				cst_no = menuInput.nextInt();
-				Iterator it = data.entrySet().iterator();
-				while (it.hasNext()) {
-					Map.Entry pair = (Map.Entry) it.next();
-					if (!data.containsKey(cst_no)) {
-						end = true;
-					}
+
+				Statement stmt = con.createStatement();
+				String query1 = "SELECT 1 FROM customer_login WHERE cust_id=" + cst_no;
+				ResultSet rs = stmt.executeQuery(query1);
+
+				// System.out.println(rs.next());
+				if (rs.next()) {
+					end = false;
+				} else {
+					end = true;
 				}
+				// Iterator it = data.entrySet().iterator();
+				// while (it.hasNext()) {
+				// Map.Entry pair = (Map.Entry) it.next();
+				// if (!data.containsKey(cst_no)) {
+				// end = true;
+				// }
+				// }
 				if (!end) {
 					System.out.println("\nThis customer number is already registered");
 				}
-			} catch (InputMismatchException e) {
+			} catch (Exception e) {
 				System.out.println("\nInvalid Choice.");
+				System.out.println(e.getMessage());
 				menuInput.next();
 			}
 		}
 		System.out.println("\nEnter PIN to be registered");
 		int pin = menuInput.nextInt();
-		data.put(cst_no, new Account(cst_no, pin));
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection con = DriverManager.getConnection(
+					"jdbc:mysql://localhost:3306/atm", "root", "maveric2022");
+			Statement stmt = con.createStatement();
+			String query1 = "INSERT INTO customer_login " + "VALUES (" + cst_no + "," + pin + ")";
+			stmt.executeUpdate(query1);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		// data.put(cst_no, new Account(cst_no, pin));
 		System.out.println("\nYour new account has been successfuly registered!");
 		System.out.println("\nRedirecting to login.............");
 		getLogin();
@@ -192,16 +243,16 @@ public class OptionMenu {
 				System.out.print("\nChoice: ");
 				int choice = menuInput.nextInt();
 				switch (choice) {
-				case 1:
-					getLogin();
-					end = true;
-					break;
-				case 2:
-					createAccount();
-					end = true;
-					break;
-				default:
-					System.out.println("\nInvalid Choice.");
+					case 1:
+						getLogin();
+						end = true;
+						break;
+					case 2:
+						createAccount();
+						end = true;
+						break;
+					default:
+						System.out.println("\nInvalid Choice.");
 				}
 			} catch (InputMismatchException e) {
 				System.out.println("\nInvalid Choice.");
